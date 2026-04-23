@@ -1,0 +1,37 @@
+name = "alkaidai"
+main = "src/worker.js"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[routes]]
+pattern = "chat.alkaidiq.com"
+custom_domain = true
+
+[vars]
+APP_NAME = "Alkaid"
+SES_REGION = "us-east-1"
+SES_FROM_EMAIL = "noreply@alkaidiq.com"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "alkaidai-db"
+database_id = "1dfb4aca-2412-4808-ae8c-48d7d94a8143"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "alkaidai-uploads"
+
+[[r2_buckets]]
+binding = "RAWFEED"
+bucket_name = "alkaidiq-rawfeed"
+
+[[r2_buckets]]
+binding = "INTELLIGENCE"
+bucket_name = "alkaidiq-intelligence"
+
+[ai]
+binding = "AI"
+
+# To enable email verification, set these secrets:
+# npx wrangler secret put SES_ACCESS_KEY_ID
+# npx wrangler secret put SES_SECRET_ACCESS_KEY
