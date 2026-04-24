@@ -47,5 +47,5 @@ wrangler deploy
 - [x] Stripe webhook signature verification
 - [x] Password hashing via PBKDF2 (crypto.subtle, 100K iterations)
 - [x] CORS scoped to `chat.alkaidiq.com`
-- [ ] CSP header (recommended addition)
-- [ ] ARIA labels for accessibility (recommended addition)
+- [x] CSP header (+ X-Content-Type-Options, Referrer-Policy, X-Frame-Options) via `htmlHeaders()` helper in `src/worker.js`
+- [x] ARIA labels for accessibility (icon-only buttons, modals, form inputs, decorative icons)

@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" width="1080" height="1350">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#2a1a5a"/>
+      <stop offset="40%" stop-color="#1a1a3e"/>
+      <stop offset="100%" stop-color="#0a0a1a"/>
+    </radialGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+    <radialGradient id="orbFill" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="30%" stop-color="#e0d4ff"/>
+      <stop offset="70%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#2a1a5a"/>
+    </radialGradient>
+    <radialGradient id="orbHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1080" height="1350" fill="url(#bg)"/>
+
+  <g fill="#ffffff" opacity="0.4">
+    <circle cx="100" cy="120" r="1.2"/>
+    <circle cx="300" cy="80" r="1"/>
+    <circle cx="750" cy="110" r="1.3"/>
+    <circle cx="950" cy="180" r="1"/>
+    <circle cx="80" cy="560" r="1"/>
+    <circle cx="1010" cy="640" r="1.2"/>
+    <circle cx="150" cy="1220" r="1.1"/>
+    <circle cx="900" cy="1280" r="1"/>
+  </g>
+
+  <!-- Orb visual -->
+  <circle cx="540" cy="380" r="220" fill="url(#orbHalo)"/>
+  <circle cx="540" cy="380" r="120" fill="url(#orbFill)"/>
+  <g stroke="#c4b5fd" stroke-width="1.5" opacity="0.65" fill="none">
+    <line x1="540" y1="200" x2="540" y2="560"/>
+    <line x1="360" y1="380" x2="720" y2="380"/>
+    <line x1="420" y1="260" x2="660" y2="500"/>
+    <line x1="660" y1="260" x2="420" y2="500"/>
+  </g>
+
+  <!-- Headline -->
+  <text x="540" y="720" font-family="Montserrat, Helvetica, Arial, sans-serif" font-size="28" font-weight="600" fill="#c4b5fd" text-anchor="middle" letter-spacing="8">UNLOCK ORB</text>
+  <text x="540" y="820" font-family="Montserrat, Helvetica, Arial, sans-serif" font-size="96" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="-2">$9.99 / month</text>
+
+  <!-- Feature bullets -->
+  <g font-family="Montserrat, Helvetica, Arial, sans-serif" font-size="26" font-weight="500" fill="#e8e8f5">
+    <g transform="translate(260, 900)">
+      <circle cx="0" cy="-8" r="8" fill="#7c3aed"/>
+      <text x="28" y="0">Qwen 2.5 72B — flagship reasoning</text>
+    </g>
+    <g transform="translate(260, 960)">
+      <circle cx="0" cy="-8" r="8" fill="#7c3aed"/>
+      <text x="28" y="0">Qwen3 Coder &amp; DeepSeek V3.2</text>
+    </g>
+    <g transform="translate(260, 1020)">
+      <circle cx="0" cy="-8" r="8" fill="#7c3aed"/>
+      <text x="28" y="0">FLUX image generation</text>
+    </g>
+    <g transform="translate(260, 1080)">
+      <circle cx="0" cy="-8" r="8" fill="#7c3aed"/>
+      <text x="28" y="0">Real-time voice conversations</text>
+    </g>
+    <g transform="translate(260, 1140)">
+      <circle cx="0" cy="-8" r="8" fill="#7c3aed"/>
+      <text x="28" y="0">Priority access &amp; higher limits</text>
+    </g>
+  </g>
+
+  <!-- CTA -->
+  <rect x="290" y="1220" width="500" height="80" rx="40" fill="url(#accentGrad)"/>
+  <text x="540" y="1272" font-family="Montserrat, Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#ffffff" text-anchor="middle" letter-spacing="1">Start free at chat.alkaidiq.com</text>
+</svg>

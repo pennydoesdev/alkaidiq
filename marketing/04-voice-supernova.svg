@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" width="1080" height="1350">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="70%">
+      <stop offset="0%" stop-color="#2d1b60"/>
+      <stop offset="45%" stop-color="#120a2e"/>
+      <stop offset="100%" stop-color="#05030f"/>
+    </radialGradient>
+    <radialGradient id="core" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="15%" stop-color="#fef3ff"/>
+      <stop offset="40%" stop-color="#c4b5fd"/>
+      <stop offset="70%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#3b0764" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="halo1" cx="50%" cy="50%" r="50%">
+      <stop offset="40%" stop-color="#7c3aed" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#7c3aed" stop-opacity="0.35"/>
+      <stop offset="55%" stop-color="#3b82f6" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="halo2" cx="50%" cy="50%" r="50%">
+      <stop offset="60%" stop-color="#7c3aed" stop-opacity="0"/>
+      <stop offset="70%" stop-color="#a78bfa" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1080" height="1350" fill="url(#bg)"/>
+
+  <!-- Starfield -->
+  <g fill="#ffffff">
+    <circle cx="120" cy="180" r="1.3" opacity="0.7"/>
+    <circle cx="260" cy="90" r="1" opacity="0.5"/>
+    <circle cx="400" cy="220" r="1.2" opacity="0.6"/>
+    <circle cx="550" cy="60" r="1" opacity="0.5"/>
+    <circle cx="720" cy="180" r="1.4" opacity="0.7"/>
+    <circle cx="880" cy="100" r="1" opacity="0.5"/>
+    <circle cx="990" cy="220" r="1.2" opacity="0.6"/>
+    <circle cx="60" cy="780" r="1.3" opacity="0.6"/>
+    <circle cx="1020" cy="760" r="1" opacity="0.5"/>
+    <circle cx="130" cy="1140" r="1.2" opacity="0.6"/>
+    <circle cx="970" cy="1180" r="1" opacity="0.5"/>
+    <circle cx="400" cy="1270" r="0.9" opacity="0.5"/>
+    <circle cx="680" cy="1240" r="1.1" opacity="0.6"/>
+  </g>
+
+  <!-- Supernova rings -->
+  <circle cx="540" cy="560" r="420" fill="url(#halo2)"/>
+  <circle cx="540" cy="560" r="320" fill="url(#halo1)"/>
+
+  <!-- Orbiting particles -->
+  <g fill="#c4b5fd">
+    <circle cx="540" cy="240" r="4" opacity="0.9"/>
+    <circle cx="760" cy="340" r="3" opacity="0.7"/>
+    <circle cx="840" cy="560" r="4" opacity="0.85"/>
+    <circle cx="760" cy="780" r="3" opacity="0.7"/>
+    <circle cx="540" cy="880" r="4" opacity="0.9"/>
+    <circle cx="320" cy="780" r="3" opacity="0.7"/>
+    <circle cx="240" cy="560" r="4" opacity="0.85"/>
+    <circle cx="320" cy="340" r="3" opacity="0.7"/>
+  </g>
+
+  <!-- Supernova core -->
+  <circle cx="540" cy="560" r="180" fill="url(#core)"/>
+  <circle cx="540" cy="560" r="60" fill="#ffffff" opacity="0.95"/>
+
+  <!-- Mic symbol in center -->
+  <g transform="translate(540, 560)" fill="#1a0a40">
+    <rect x="-18" y="-40" width="36" height="60" rx="18"/>
+    <path d="M -38 10 Q 0 50 38 10" stroke="#1a0a40" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <line x1="0" y1="40" x2="0" y2="58" stroke="#1a0a40" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <!-- Headline -->
+  <text x="540" y="1000" font-family="Montserrat, Helvetica, Arial, sans-serif" font-size="28" font-weight="600" fill="#c4b5fd" text-anchor="middle" letter-spacing="10">ORB TALK</text>
+  <text x="540" y="1100" font-family="Montserrat, Helvetica, Arial, sans-serif" font-size="92" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="-2">Talk to the stars.</text>
+
+  <!-- Subhead -->
+  <text x="540" y="1170" font-family="Montserrat, Helvetica, Arial, sans-serif" font-size="24" font-weight="400" fill="#a1a1b5" text-anchor="middle" letter-spacing="1">Real-time voice AI. Speak, listen, think out loud.</text>
+
+  <!-- CTA -->
+  <rect x="340" y="1230" width="400" height="70" rx="35" fill="url(#accentGrad)"/>
+  <text x="540" y="1276" font-family="Montserrat, Helvetica, Arial, sans-serif" font-size="26" font-weight="700" fill="#ffffff" text-anchor="middle" letter-spacing="1">chat.alkaidiq.com</text>
+</svg>
