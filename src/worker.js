@@ -3785,11 +3785,11 @@ export default {
       if (!adminUser) {
         return new Response('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Alkaid Admin</title></head><body style="background:#0d0d0d;color:#fff;font-family:Montserrat,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0"><div style="text-align:center"><h1>Not Authorized</h1><p>You must be logged in as an admin.</p><a href="/" style="color:#7c3aed">Go to Login</a></div></body></html>', {
           status: 403,
-          headers: { 'Content-Type': 'text/html; charset=utf-8' },
+          headers: htmlHeaders(),
         });
       }
       return new Response(ADMIN_HTML, {
-        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' },
+        headers: htmlHeaders({ 'Cache-Control': 'no-cache' }),
       });
     }
 
@@ -3813,23 +3813,55 @@ export default {
 
     // Policy pages
     if (path === '/terms') {
-      return new Response(TERMS_OF_SERVICE_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+      return new Response(TERMS_OF_SERVICE_HTML, { headers: htmlHeaders() });
     }
     if (path === '/privacy') {
-      return new Response(PRIVACY_POLICY_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+      return new Response(PRIVACY_POLICY_HTML, { headers: htmlHeaders() });
     }
     if (path === '/acceptable-use') {
-      return new Response(ACCEPTABLE_USE_POLICY_HTML, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+      return new Response(ACCEPTABLE_USE_POLICY_HTML, { headers: htmlHeaders() });
     }
 
     // Serve the SPA — inject regex patterns that can't survive template literal escaping
     const reScript = '<script>window._RE={sS:"[' + '\\' + '\\' + 's' + '\\' + '\\' + 'S]",onEvent:/' + '\\' + 'bon' + '\\' + 'w+' + '\\' + 's*=/gi,videoUrl:/(?:^|' + '\\' + 's)(https?:' + '\\' + '/' + '\\' + '/[^' + '\\' + 's<]+' + '\\' + '.(?:mp4|webm|mov|ogg))(?:' + '\\' + 's|$|<)/gi};<' + '/script>';
     const finalHTML = HTML.replace('</head>', reScript + '</head>');
     return new Response(finalHTML, {
-      headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' },
+      headers: htmlHeaders({ 'Cache-Control': 'no-cache' }),
     });
   }
 };
+
+// ─── HTML response headers with CSP + other security headers ───
+// Inline scripts/styles are unavoidable in the template-literal SPA, so
+// 'unsafe-inline' stays. Everything else is whitelisted explicitly.
+const CSP_HEADER = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://www.googletagmanager.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
+  "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
+  "img-src 'self' data: blob: https:",
+  "media-src 'self' data: blob:",
+  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://region1.google-analytics.com",
+  "worker-src 'self'",
+  "manifest-src 'self'",
+  "frame-src 'none'",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "object-src 'none'",
+  "upgrade-insecure-requests",
+].join('; ');
+
+function htmlHeaders(extra) {
+  return {
+    'Content-Type': 'text/html; charset=utf-8',
+    'Content-Security-Policy': CSP_HEADER,
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'X-Frame-Options': 'DENY',
+    ...(extra || {}),
+  };
+}
 
 // ─── Big Dipper Icon SVG ───
 function generateIconSVG() {
@@ -4487,44 +4519,44 @@ body {
 </div>
 
 <!-- Sidebar Overlay -->
-<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+<div class="overlay" id="overlay" aria-hidden="true" onclick="toggleSidebar()"></div>
 
 <!-- Sidebar -->
-<aside class="sidebar" id="sidebar">
+<aside class="sidebar" id="sidebar" aria-label="Conversations">
   <div class="sidebar-header">
     <h2>
-      <svg width="24" height="24" viewBox="0 0 512 512" style="border-radius:4px">
+      <svg aria-hidden="true" width="24" height="24" viewBox="0 0 512 512" style="border-radius:4px">
         <rect width="512" height="512" rx="96" fill="#fff"/>
         <g stroke="#1a1a2e" stroke-width="6" fill="none"><line x1="120" y1="200" x2="200" y2="180"/><line x1="200" y1="180" x2="220" y2="260"/><line x1="220" y1="260" x2="140" y2="280"/><line x1="140" y1="280" x2="120" y2="200"/><line x1="200" y1="180" x2="280" y2="160"/><line x1="280" y1="160" x2="350" y2="180"/><line x1="350" y1="180" x2="400" y2="220"/></g>
         <g fill="#1a1a2e"><circle cx="120" cy="200" r="10"/><circle cx="200" cy="180" r="10"/><circle cx="220" cy="260" r="10"/><circle cx="140" cy="280" r="10"/><circle cx="280" cy="160" r="10"/><circle cx="350" cy="180" r="10"/><circle cx="400" cy="220" r="12"/></g>
       </svg>
       Alkaid
     </h2>
-    <button class="new-chat-btn" onclick="newChat()"><i class="ti ti-plus" style="font-size:14px"></i> New</button>
+    <button class="new-chat-btn" onclick="newChat()"><i aria-hidden="true" class="ti ti-plus" style="font-size:14px"></i> New</button>
   </div>
   <div class="conv-list" id="convList"></div>
   <div class="sidebar-footer">
-    <button class="settings-btn" onclick="openProfile()"><i class="ti ti-user-circle" style="font-size:16px"></i> My Account</button>
-    <button class="settings-btn" style="margin-top:6px" onclick="openSettings()"><i class="ti ti-settings" style="font-size:16px"></i> Settings</button>
-    <button class="settings-btn" style="margin-top:6px" onclick="logout()"><i class="ti ti-logout" style="font-size:16px"></i> Sign out</button>
+    <button class="settings-btn" onclick="openProfile()"><i aria-hidden="true" class="ti ti-user-circle" style="font-size:16px"></i> My Account</button>
+    <button class="settings-btn" style="margin-top:6px" onclick="openSettings()"><i aria-hidden="true" class="ti ti-settings" style="font-size:16px"></i> Settings</button>
+    <button class="settings-btn" style="margin-top:6px" onclick="logout()"><i aria-hidden="true" class="ti ti-logout" style="font-size:16px"></i> Sign out</button>
   </div>
 </aside>
 
 <!-- Main Area -->
 <main class="main">
   <div class="topbar">
-    <button class="menu-btn" onclick="toggleSidebar()"><i class="ti ti-menu-2 ti-lg"></i></button>
+    <button class="menu-btn" aria-label="Toggle sidebar" onclick="toggleSidebar()"><i aria-hidden="true" class="ti ti-menu-2 ti-lg"></i></button>
     <select class="model-selector" id="modelSelect" style="display:none"></select>
     <button class="model-icon-btn" id="modelIconBtn" onclick="toggleModelDropdown()" title="Select model">m</button>
     <div class="model-dropdown" id="modelDropdown"></div>
-    <div class="topbar-logo"><svg viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="var(--bg2)"/><g stroke="var(--text)" stroke-width="8" stroke-linecap="round" fill="none"><line x1="120" y1="200" x2="200" y2="180"/><line x1="200" y1="180" x2="220" y2="260"/><line x1="220" y1="260" x2="140" y2="280"/><line x1="140" y1="280" x2="120" y2="200"/><line x1="200" y1="180" x2="280" y2="160"/><line x1="280" y1="160" x2="350" y2="140"/></g><g fill="var(--text)"><circle cx="120" cy="200" r="10"/><circle cx="200" cy="180" r="10"/><circle cx="220" cy="260" r="10"/><circle cx="140" cy="280" r="10"/><circle cx="280" cy="160" r="8"/><circle cx="350" cy="140" r="12"/></g></svg></div>
+    <div class="topbar-logo"><svg aria-hidden="true" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="var(--bg2)"/><g stroke="var(--text)" stroke-width="8" stroke-linecap="round" fill="none"><line x1="120" y1="200" x2="200" y2="180"/><line x1="200" y1="180" x2="220" y2="260"/><line x1="220" y1="260" x2="140" y2="280"/><line x1="140" y1="280" x2="120" y2="200"/><line x1="200" y1="180" x2="280" y2="160"/><line x1="280" y1="160" x2="350" y2="140"/></g><g fill="var(--text)"><circle cx="120" cy="200" r="10"/><circle cx="200" cy="180" r="10"/><circle cx="220" cy="260" r="10"/><circle cx="140" cy="280" r="10"/><circle cx="280" cy="160" r="8"/><circle cx="350" cy="140" r="12"/></g></svg></div>
     <div class="topbar-actions">
-      <button onclick="toggleMultiModel()" title="Multi-model compare" id="multiBtn" style="font-size:12px;font-weight:700;padding:5px 12px;border-radius:8px;letter-spacing:0.3px;border:1px solid var(--border);background:var(--bg2)"><i class="ti ti-arrows-split" style="font-size:14px;vertical-align:-2px;margin-right:2px"></i> Multi</button>
-      <button onclick="openPrompts()" title="Saved prompts"><i class="ti ti-file-text"></i></button>
-      <button onclick="toggleTheme()" title="Toggle theme" id="themeBtn"><i class="ti ti-moon"></i></button>
+      <button onclick="toggleMultiModel()" title="Multi-model compare" id="multiBtn" style="font-size:12px;font-weight:700;padding:5px 12px;border-radius:8px;letter-spacing:0.3px;border:1px solid var(--border);background:var(--bg2)"><i aria-hidden="true" class="ti ti-arrows-split" style="font-size:14px;vertical-align:-2px;margin-right:2px"></i> Multi</button>
+      <button onclick="openPrompts()" aria-label="Saved prompts" title="Saved prompts"><i aria-hidden="true" class="ti ti-file-text"></i></button>
+      <button onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle theme" id="themeBtn"><i aria-hidden="true" class="ti ti-moon"></i></button>
     </div>
   </div>
-  <div class="messages" id="messages"></div>
+  <div class="messages" id="messages" role="log" aria-live="polite" aria-label="Chat messages"></div>
   <div class="input-area">
     <div class="input-row">
       <div class="attachments-preview" id="attachments"></div>
@@ -4532,12 +4564,12 @@ body {
       <div id="imageGenPanel" style="display:none">
         <div style="display:flex;gap:8px;align-items:flex-end">
           <div style="flex:1;display:flex;flex-direction:column;gap:4px">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><i class="ti ti-photo-ai" style="color:#7c3aed;font-size:16px"></i><span style="font-size:12px;font-weight:600;color:#7c3aed">Orb Sight</span></div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><i aria-hidden="true" class="ti ti-photo-ai" style="color:#7c3aed;font-size:16px"></i><span style="font-size:12px;font-weight:600;color:#7c3aed">Orb Sight</span></div>
             <textarea id="imagePromptInput" placeholder="Describe the image you want to create..." rows="2" style="width:100%;border:1px solid var(--border);border-radius:12px;background:var(--bg2);color:var(--text);font-size:15px;padding:10px 14px;resize:none;font-family:inherit;outline:none" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();generateImage()}"></textarea>
           </div>
-          <button id="imageGenBtn" onclick="generateImage()" style="padding:12px 20px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;gap:6px"><i class="ti ti-sparkles"></i> Generate</button>
+          <button id="imageGenBtn" onclick="generateImage()" style="padding:12px 20px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;min-height:44px;display:flex;align-items:center;gap:6px"><i aria-hidden="true" class="ti ti-sparkles"></i> Generate</button>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px 12px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.15);border-radius:10px;font-size:11px;color:var(--text2)"><i class="ti ti-alert-triangle" style="color:#f59e0b;font-size:14px;flex-shrink:0"></i><span>Generated images are automatically deleted after <strong style="color:var(--text)">30 days</strong>. Right-click or tap <strong style="color:var(--text)">Save</strong> to download images you want to keep.</span></div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:8px;padding:8px 12px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.15);border-radius:10px;font-size:11px;color:var(--text2)"><i aria-hidden="true" class="ti ti-alert-triangle" style="color:#f59e0b;font-size:14px;flex-shrink:0"></i><span>Generated images are automatically deleted after <strong style="color:var(--text)">30 days</strong>. Right-click or tap <strong style="color:var(--text)">Save</strong> to download images you want to keep.</span></div>
         <div id="imageSuggestions" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
           <button class="img-suggest-chip" onclick="useImageSuggestion(this)">A cosmic nebula with swirling purple and blue gases</button>
           <button class="img-suggest-chip" onclick="useImageSuggestion(this)">Futuristic cityscape at sunset with flying vehicles</button>
@@ -4550,16 +4582,16 @@ body {
       </div>
       <div id="quickPrompts" class="quick-prompts" style="display:none"></div>
       <div class="input-box">
-        <button class="star-glow-btn" onclick="handleOrbIconClick()" title="Orb" id="inputOrbBtn"><svg width="20" height="20" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="orbGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="30%" stop-color="#c084fc"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient></defs><circle cx="50" cy="50" r="12" fill="url(#orbGlow)"/><line x1="50" y1="5" x2="50" y2="95" stroke="#7c3aed" stroke-width="2.5" opacity="0.8"/><line x1="5" y1="50" x2="95" y2="50" stroke="#7c3aed" stroke-width="2.5" opacity="0.8"/><line x1="20" y1="20" x2="80" y2="80" stroke="#7c3aed" stroke-width="1.5" opacity="0.5"/><line x1="80" y1="20" x2="20" y2="80" stroke="#7c3aed" stroke-width="1.5" opacity="0.5"/></svg></button>
-        <textarea id="chatInput" placeholder="Message Alkaid..." rows="1"
+        <button class="star-glow-btn" onclick="handleOrbIconClick()" aria-label="Orb menu" title="Orb" id="inputOrbBtn"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="orbGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="30%" stop-color="#c084fc"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient></defs><circle cx="50" cy="50" r="12" fill="url(#orbGlow)"/><line x1="50" y1="5" x2="50" y2="95" stroke="#7c3aed" stroke-width="2.5" opacity="0.8"/><line x1="5" y1="50" x2="95" y2="50" stroke="#7c3aed" stroke-width="2.5" opacity="0.8"/><line x1="20" y1="20" x2="80" y2="80" stroke="#7c3aed" stroke-width="1.5" opacity="0.5"/><line x1="80" y1="20" x2="20" y2="80" stroke="#7c3aed" stroke-width="1.5" opacity="0.5"/></svg></button>
+        <textarea id="chatInput" placeholder="Message Alkaid..." aria-label="Message Alkaid" rows="1"
           oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
         <div class="input-actions">
-          <button onclick="triggerUpload()" title="Attach file"><i class="ti ti-paperclip"></i></button>
-          <button onclick="toggleVoice()" title="Voice input" id="voiceBtn"><i class="ti ti-microphone"></i></button>
-          <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled><i class="ti ti-send"></i></button>
+          <button onclick="triggerUpload()" aria-label="Attach file" title="Attach file"><i aria-hidden="true" class="ti ti-paperclip"></i></button>
+          <button onclick="toggleVoice()" aria-label="Voice input" title="Voice input" id="voiceBtn"><i aria-hidden="true" class="ti ti-microphone"></i></button>
+          <button class="send-btn" id="sendBtn" aria-label="Send message" onclick="sendMessage()" disabled><i aria-hidden="true" class="ti ti-send"></i></button>
         </div>
       </div>
-      <div style="text-align:center;padding:2px 0 0;font-size:11px;color:var(--text2);opacity:0.6"><i class="ti ti-info-circle" style="font-size:11px;vertical-align:-1px"></i> Alkaid is AI and can make mistakes. Verify important information.</div>
+      <div style="text-align:center;padding:2px 0 0;font-size:11px;color:var(--text2);opacity:0.6"><i aria-hidden="true" class="ti ti-info-circle" style="font-size:11px;vertical-align:-1px"></i> Alkaid is AI and can make mistakes. Verify important information.</div>
     </div>
   </div>
   <input type="file" id="fileInput" style="display:none" accept="image/*,.pdf,.txt,.csv,.json,.md" multiple onchange="handleFiles(event)">
@@ -4567,54 +4599,54 @@ body {
 
 <!-- Settings Modal -->
 <!-- Profile Modal -->
-<div class="modal-overlay" id="profileModal">
+<div class="modal-overlay" id="profileModal" role="dialog" aria-modal="true" aria-labelledby="profileModalTitle">
   <div class="modal" style="max-width:520px">
     <div class="modal-header">
-      <h2><i class="ti ti-user-circle" style="font-size:20px;vertical-align:-2px"></i> My Account</h2>
-      <button onclick="closeProfile()">&times;</button>
+      <h2 id="profileModalTitle"><i aria-hidden="true" class="ti ti-user-circle" style="font-size:20px;vertical-align:-2px"></i> My Account</h2>
+      <button onclick="closeProfile()" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body" id="profileBody" style="max-height:70vh;overflow-y:auto"></div>
   </div>
 </div>
 
-<div class="modal-overlay" id="settingsModal">
+<div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
   <div class="modal">
     <div class="modal-header">
-      <h2>Settings</h2>
-      <button onclick="closeSettings()">&times;</button>
+      <h2 id="settingsModalTitle">Settings</h2>
+      <button onclick="closeSettings()" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body" id="settingsBody"></div>
   </div>
 </div>
 
 <!-- Custom Providers Modal -->
-<div class="modal-overlay" id="customProvidersModal">
+<div class="modal-overlay" id="customProvidersModal" role="dialog" aria-modal="true" aria-labelledby="customProvidersModalTitle">
   <div class="modal" style="max-width:600px">
     <div class="modal-header">
-      <h2>Custom Providers</h2>
-      <button onclick="closeCustomProviders()">&times;</button>
+      <h2 id="customProvidersModalTitle">Custom Providers</h2>
+      <button onclick="closeCustomProviders()" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body" id="customProvidersBody" style="max-height:70vh;overflow-y:auto"></div>
   </div>
 </div>
 
 <!-- Prompts Modal -->
-<div class="modal-overlay" id="promptsModal">
+<div class="modal-overlay" id="promptsModal" role="dialog" aria-modal="true" aria-labelledby="promptsModalTitle">
   <div class="modal">
     <div class="modal-header">
-      <h2>Saved Prompts</h2>
-      <button onclick="closePrompts()">&times;</button>
+      <h2 id="promptsModalTitle">Saved Prompts</h2>
+      <button onclick="closePrompts()" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body" id="promptsBody" style="max-height:60vh;overflow-y:auto"></div>
   </div>
 </div>
 
 <!-- Multi-Model Panel -->
-<div class="modal-overlay" id="multiModelModal">
+<div class="modal-overlay" id="multiModelModal" role="dialog" aria-modal="true" aria-labelledby="multiModelModalTitle">
   <div class="modal" style="max-width:600px">
     <div class="modal-header">
-      <h2>Multi-Model Chat</h2>
-      <button onclick="closeMultiModel()">&times;</button>
+      <h2 id="multiModelModalTitle">Multi-Model Chat</h2>
+      <button onclick="closeMultiModel()" aria-label="Close">&times;</button>
     </div>
     <div class="modal-body">
       <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Select 2-5 models to run simultaneously. Each will respond to the same prompt.</p>
@@ -4626,7 +4658,7 @@ body {
 
 <!-- Prompt Improvement Banner -->
 <div id="promptImproveBar" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px 16px;margin:0 auto 8px;max-width:800px;font-size:13px;color:var(--text2)">
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><i class="ti ti-sparkles" style="font-size:14px;color:var(--accent)"></i><strong style="color:var(--text)">Prompt Tips</strong><button onclick="hidePromptImprove()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text2)">&times;</button></div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px"><i aria-hidden="true" class="ti ti-sparkles" style="font-size:14px;color:var(--accent)"></i><strong style="color:var(--text)">Prompt Tips</strong><button onclick="hidePromptImprove()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text2)">&times;</button></div>
   <div id="promptSuggestions"></div>
 </div>
 
@@ -4799,13 +4831,13 @@ function renderVerifyForm() {
     '<p class="auth-subtitle">We sent a 6-digit code to ' + escapeHTML(state.user?.email || '') + '</p>' +
     '<div class="auth-error" id="authError"></div>' +
     '<form class="auth-form" onsubmit="handleVerify(event)" style="align-items:center">' +
-      '<div class="verify-inputs">' +
-        '<input type="text" maxlength="1" class="vc" oninput="verifyNext(this)" onkeydown="verifyBack(event,this)">' +
-        '<input type="text" maxlength="1" class="vc" oninput="verifyNext(this)" onkeydown="verifyBack(event,this)">' +
-        '<input type="text" maxlength="1" class="vc" oninput="verifyNext(this)" onkeydown="verifyBack(event,this)">' +
-        '<input type="text" maxlength="1" class="vc" oninput="verifyNext(this)" onkeydown="verifyBack(event,this)">' +
-        '<input type="text" maxlength="1" class="vc" oninput="verifyNext(this)" onkeydown="verifyBack(event,this)">' +
-        '<input type="text" maxlength="1" class="vc" oninput="verifyNext(this)" onkeydown="verifyBack(event,this)">' +
+      '<div class="verify-inputs" role="group" aria-label="6-digit verification code">' +
+        '<input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Verification code digit 1" class="vc" oninput="verifyNext(this)" onkeydown="verifyBack(event,this)">' +
+        '<input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Verification code digit 2" class="vc" oninput="verifyNext(this)" onkeydown="verifyBack(event,this)">' +
+        '<input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Verification code digit 3" class="vc" oninput="verifyNext(this)" onkeydown="verifyBack(event,this)">' +
+        '<input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Verification code digit 4" class="vc" oninput="verifyNext(this)" onkeydown="verifyBack(event,this)">' +
+        '<input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Verification code digit 5" class="vc" oninput="verifyNext(this)" onkeydown="verifyBack(event,this)">' +
+        '<input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Verification code digit 6" class="vc" oninput="verifyNext(this)" onkeydown="verifyBack(event,this)">' +
       '</div>' +
       '<button type="submit" class="auth-btn" id="verifyBtn">Verify</button>' +
     '</form>' +
@@ -4937,13 +4969,13 @@ function renderResetCodeForm() {
     '<p class="auth-subtitle">We sent a 6-digit code to ' + escapeHTML(resetState.email) + '</p>' +
     '<div class="auth-error" id="authError"></div>' +
     '<form class="auth-form" onsubmit="handleResetCode(event)" style="align-items:center">' +
-      '<div class="verify-inputs">' +
-        '<input type="text" maxlength="1" class="rc" oninput="resetCodeNext(this)" onkeydown="resetCodeBack(event,this)">' +
-        '<input type="text" maxlength="1" class="rc" oninput="resetCodeNext(this)" onkeydown="resetCodeBack(event,this)">' +
-        '<input type="text" maxlength="1" class="rc" oninput="resetCodeNext(this)" onkeydown="resetCodeBack(event,this)">' +
-        '<input type="text" maxlength="1" class="rc" oninput="resetCodeNext(this)" onkeydown="resetCodeBack(event,this)">' +
-        '<input type="text" maxlength="1" class="rc" oninput="resetCodeNext(this)" onkeydown="resetCodeBack(event,this)">' +
-        '<input type="text" maxlength="1" class="rc" oninput="resetCodeNext(this)" onkeydown="resetCodeBack(event,this)">' +
+      '<div class="verify-inputs" role="group" aria-label="6-digit reset code">' +
+        '<input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Reset code digit 1" class="rc" oninput="resetCodeNext(this)" onkeydown="resetCodeBack(event,this)">' +
+        '<input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Reset code digit 2" class="rc" oninput="resetCodeNext(this)" onkeydown="resetCodeBack(event,this)">' +
+        '<input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Reset code digit 3" class="rc" oninput="resetCodeNext(this)" onkeydown="resetCodeBack(event,this)">' +
+        '<input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Reset code digit 4" class="rc" oninput="resetCodeNext(this)" onkeydown="resetCodeBack(event,this)">' +
+        '<input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Reset code digit 5" class="rc" oninput="resetCodeNext(this)" onkeydown="resetCodeBack(event,this)">' +
+        '<input type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Reset code digit 6" class="rc" oninput="resetCodeNext(this)" onkeydown="resetCodeBack(event,this)">' +
       '</div>' +
       '<button type="submit" class="auth-btn" id="resetCodeBtn">Verify code</button>' +
     '</form>' +
@@ -5140,7 +5172,7 @@ async function loadModels() {
       orbModels.forEach(function(m) {
         var clickAction = isOrbUser ? 'selectModel(\\'' + m.id + '\\')' : 'showUpgradePrompt(\\'model\\')';
         html += '<div class="md-item' + (m.id === state.model ? ' active' : '') + '" data-model="' + m.id + '" onclick="' + clickAction + '" style="' + (!isOrbUser ? 'opacity:0.7' : '') + '">' +
-          '<i class="ti ti-sparkles" style="font-size:16px;color:#7c3aed"></i>' +
+          '<i aria-hidden="true" class="ti ti-sparkles" style="font-size:16px;color:#7c3aed"></i>' +
           '<span>' + m.name + '</span>' +
           (isOrbUser ? '' : '<span class="lock-badge" style="margin-left:auto;font-size:11px;color:#7c3aed;background:rgba(124,58,237,0.1);padding:2px 6px;border-radius:4px">Upgrade</span>') + '</div>';
       });
@@ -5150,7 +5182,7 @@ async function loadModels() {
       html += '<div class="md-group-label">Models</div>';
       builtIn.forEach(function(m) {
         html += '<div class="md-item' + (m.id === state.model ? ' active' : '') + '" data-model="' + m.id + '" onclick="selectModel(\\'' + m.id + '\\')">' +
-          '<i class="ti ti-message-circle" style="font-size:16px;color:var(--accent)"></i>' +
+          '<i aria-hidden="true" class="ti ti-message-circle" style="font-size:16px;color:var(--accent)"></i>' +
           '<span>' + m.name + '</span></div>';
       });
     }
@@ -5160,7 +5192,7 @@ async function loadModels() {
       imgModels.forEach(function(m) {
         var clickAction = (m.tier === 'orb' && !isOrbUser) ? 'showUpgradePrompt(\\'model\\')' : 'selectModel(\\'' + m.id + '\\')';
         html += '<div class="md-item' + (m.id === state.model ? ' active' : '') + '" data-model="' + m.id + '" onclick="' + clickAction + '">' +
-          '<i class="ti ti-photo-ai" style="font-size:16px;color:#7c3aed"></i>' +
+          '<i aria-hidden="true" class="ti ti-photo-ai" style="font-size:16px;color:#7c3aed"></i>' +
           '<span>' + m.name + '</span>' +
           ((m.tier === 'orb' && !isOrbUser) ? '<span class="lock-badge" style="margin-left:auto;font-size:11px;color:#7c3aed;background:rgba(124,58,237,0.1);padding:2px 6px;border-radius:4px">Upgrade</span>' : '') + '</div>';
       });
@@ -5177,7 +5209,7 @@ async function loadModels() {
         html += '<div class="md-group-label">' + escapeHTML(pn) + '</div>';
         byProvider[pn].forEach(function(m) {
           html += '<div class="md-item' + (m.id === state.model ? ' active' : '') + '" data-model="' + m.id + '" onclick="selectModel(\\'' + m.id + '\\')">' +
-            '<i class="ti ti-plug" style="font-size:16px;color:var(--text2)"></i>' +
+            '<i aria-hidden="true" class="ti ti-plug" style="font-size:16px;color:var(--text2)"></i>' +
             '<span>' + m.name + '</span></div>';
         });
       });
@@ -5282,7 +5314,7 @@ function renderConversations() {
   el.innerHTML = state.conversations.map(c =>
     '<div class="conv-item' + (state.currentConv === c.id ? ' active' : '') + '" onclick="loadConversation(\\'' + c.id + '\\')">' +
       '<span class="conv-title">' + escapeHTML(c.title) + '</span>' +
-      '<button class="conv-delete" onclick="event.stopPropagation();deleteConversation(\\'' + c.id + '\\')">&times;</button>' +
+      '<button class="conv-delete" aria-label="Delete conversation" onclick="event.stopPropagation();deleteConversation(\\'' + c.id + '\\')">&times;</button>' +
     '</div>'
   ).join('');
 }
@@ -5330,13 +5362,13 @@ function renderEmpty() {
       '<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px"><svg width="28" height="28" viewBox="0 0 100 100"><defs><radialGradient id="orbG2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fff"/><stop offset="30%" stop-color="#c084fc"/><stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/></radialGradient></defs><circle cx="50" cy="50" r="14" fill="url(#orbG2)"/><line x1="50" y1="5" x2="50" y2="95" stroke="#7c3aed" stroke-width="3" opacity="0.8"/><line x1="5" y1="50" x2="95" y2="50" stroke="#7c3aed" stroke-width="3" opacity="0.8"/><line x1="20" y1="20" x2="80" y2="80" stroke="#7c3aed" stroke-width="2" opacity="0.5"/><line x1="80" y1="20" x2="20" y2="80" stroke="#7c3aed" stroke-width="2" opacity="0.5"/></svg><span style="font-size:20px;font-weight:800;background:linear-gradient(135deg,#7c3aed,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Orb Plan</span></div>' +
       '<p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.5">Unlock AI image generation, 72B models, advanced coding AI, and priority access.</p>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px;text-align:left">' +
-        '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><i class="ti ti-photo-ai" style="color:#7c3aed"></i> Orb Sight</div>' +
-        '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><i class="ti ti-brain" style="color:#7c3aed"></i> 72B Model</div>' +
-        '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><i class="ti ti-code" style="color:#7c3aed"></i> Orb Code</div>' +
-        '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><i class="ti ti-bolt" style="color:#7c3aed"></i> Priority</div>' +
+        '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><i aria-hidden="true" class="ti ti-photo-ai" style="color:#7c3aed"></i> Orb Sight</div>' +
+        '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><i aria-hidden="true" class="ti ti-brain" style="color:#7c3aed"></i> 72B Model</div>' +
+        '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><i aria-hidden="true" class="ti ti-code" style="color:#7c3aed"></i> Orb Code</div>' +
+        '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)"><i aria-hidden="true" class="ti ti-bolt" style="color:#7c3aed"></i> Priority</div>' +
       '</div>' +
       '<div style="font-size:22px;font-weight:800;color:var(--text);margin-bottom:10px" id="orbPriceDisplay">' + orbPrice + '</div>' +
-      '<button onclick="showUpgradePrompt(\\'default\\')" style="width:100%;padding:14px 20px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform 0.15s;box-shadow:0 4px 15px rgba(124,58,237,0.3)"><i class="ti ti-rocket" style="font-size:18px"></i> Take Off</button>' +
+      '<button onclick="showUpgradePrompt(\\'default\\')" style="width:100%;padding:14px 20px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform 0.15s;box-shadow:0 4px 15px rgba(124,58,237,0.3)"><i aria-hidden="true" class="ti ti-rocket" style="font-size:18px"></i> Take Off</button>' +
     '</div>';
 
   el.innerHTML =
@@ -5382,7 +5414,7 @@ function renderMessages() {
 
 function renderMessage(m) {
   const isUser = m.role === 'user';
-  const avatar = isUser ? '<i class="ti ti-user" style="font-size:18px"></i>' : '<i class="ti ti-sparkles" style="font-size:18px"></i>';
+  const avatar = isUser ? '<i aria-hidden="true" class="ti ti-user" style="font-size:18px"></i>' : '<i aria-hidden="true" class="ti ti-sparkles" style="font-size:18px"></i>';
   let content = m.content;
 
   // Handle image/file attachments
@@ -5489,7 +5521,7 @@ async function sendMessage() {
   const msgEl = document.getElementById('messages');
   const typingDiv = document.createElement('div');
   typingDiv.className = 'message assistant';
-  typingDiv.innerHTML = '<div class="avatar"><i class="ti ti-sparkles" style="font-size:18px"></i></div><div class="bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
+  typingDiv.innerHTML = '<div class="avatar"><i aria-hidden="true" class="ti ti-sparkles" style="font-size:18px"></i></div><div class="bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>';
   msgEl.appendChild(typingDiv);
   msgEl.scrollTop = msgEl.scrollHeight;
 
@@ -5572,12 +5604,12 @@ async function sendMessage() {
       // Copy button
       var copyBtn = document.createElement('button');
       copyBtn.style.cssText = btnStyle;
-      copyBtn.innerHTML = '<i class="ti ti-copy"></i>';
+      copyBtn.innerHTML = '<i aria-hidden="true" class="ti ti-copy"></i>';
       copyBtn.title = 'Copy response';
       copyBtn.onclick = function() {
         navigator.clipboard.writeText(assistantContent).then(function() {
-          copyBtn.innerHTML = '<i class="ti ti-check"></i>';
-          setTimeout(function() { copyBtn.innerHTML = '<i class="ti ti-copy"></i>'; }, 2000);
+          copyBtn.innerHTML = '<i aria-hidden="true" class="ti ti-check"></i>';
+          setTimeout(function() { copyBtn.innerHTML = '<i aria-hidden="true" class="ti ti-copy"></i>'; }, 2000);
         });
       };
       actions.appendChild(copyBtn);
@@ -5586,11 +5618,11 @@ async function sendMessage() {
       var msgId = state.messages.length - 1;
       var likeBtn = document.createElement('button');
       likeBtn.style.cssText = btnStyle;
-      likeBtn.innerHTML = '<i class="ti ti-thumb-up"></i>';
+      likeBtn.innerHTML = '<i aria-hidden="true" class="ti ti-thumb-up"></i>';
       likeBtn.title = 'Good response';
       likeBtn.onclick = function() {
         likeBtn.style.color = '#22c55e';
-        likeBtn.innerHTML = '<i class="ti ti-thumb-up-filled"></i>';
+        likeBtn.innerHTML = '<i aria-hidden="true" class="ti ti-thumb-up-filled"></i>';
         authFetch('/api/chat/feedback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -5602,11 +5634,11 @@ async function sendMessage() {
       // Dislike button
       var dislikeBtn = document.createElement('button');
       dislikeBtn.style.cssText = btnStyle;
-      dislikeBtn.innerHTML = '<i class="ti ti-thumb-down"></i>';
+      dislikeBtn.innerHTML = '<i aria-hidden="true" class="ti ti-thumb-down"></i>';
       dislikeBtn.title = 'Bad response';
       dislikeBtn.onclick = function() {
         dislikeBtn.style.color = '#ef4444';
-        dislikeBtn.innerHTML = '<i class="ti ti-thumb-down-filled"></i>';
+        dislikeBtn.innerHTML = '<i aria-hidden="true" class="ti ti-thumb-down-filled"></i>';
         authFetch('/api/chat/feedback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -5618,7 +5650,7 @@ async function sendMessage() {
       // TTS button
       var ttsBtn = document.createElement('button');
       ttsBtn.style.cssText = btnStyle;
-      ttsBtn.innerHTML = '<i class="ti ti-volume"></i>';
+      ttsBtn.innerHTML = '<i aria-hidden="true" class="ti ti-volume"></i>';
       ttsBtn.title = 'Read aloud';
       ttsBtn.onclick = function() { playTTS(assistantContent); };
       actions.appendChild(ttsBtn);
@@ -5658,16 +5690,16 @@ function showUpgradePrompt(feature) {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.2s';
   overlay.innerHTML =
     '<div style="background:var(--bg);border-radius:16px;max-width:420px;width:100%;padding:32px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.4)">' +
-      '<div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#3b82f6);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;color:#fff"><i class="ti ti-sparkles"></i></div>' +
+      '<div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#3b82f6);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px;color:#fff"><i aria-hidden="true" class="ti ti-sparkles"></i></div>' +
       '<h2 style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:8px">Upgrade to Orb</h2>' +
       '<p style="color:var(--text2);font-size:14px;line-height:1.6;margin-bottom:20px">' + (featureText[feature] || featureText.default) + ' — plus priority access, faster responses, and more.</p>' +
       '<div style="display:flex;flex-direction:column;gap:10px;text-align:left;margin-bottom:24px;padding:16px;background:var(--bg2);border-radius:12px">' +
-        '<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text)"><i class="ti ti-photo-ai" style="color:#7c3aed;font-size:18px"></i> Orb Sight — AI image generation</div>' +
-        '<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text)"><i class="ti ti-brain" style="color:#7c3aed;font-size:18px"></i> Orb — 72B parameter model</div>' +
-        '<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text)"><i class="ti ti-code" style="color:#7c3aed;font-size:18px"></i> Orb Code — advanced coding AI</div>' +
-        '<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text)"><i class="ti ti-bolt" style="color:#7c3aed;font-size:18px"></i> Priority access & faster responses</div>' +
+        '<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text)"><i aria-hidden="true" class="ti ti-photo-ai" style="color:#7c3aed;font-size:18px"></i> Orb Sight — AI image generation</div>' +
+        '<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text)"><i aria-hidden="true" class="ti ti-brain" style="color:#7c3aed;font-size:18px"></i> Orb — 72B parameter model</div>' +
+        '<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text)"><i aria-hidden="true" class="ti ti-code" style="color:#7c3aed;font-size:18px"></i> Orb Code — advanced coding AI</div>' +
+        '<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text)"><i aria-hidden="true" class="ti ti-bolt" style="color:#7c3aed;font-size:18px"></i> Priority access & faster responses</div>' +
       '</div>' +
-      '<button onclick="startUpgrade()" style="width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;font-size:15px;font-weight:700;cursor:pointer;transition:transform 0.15s"><i class="ti ti-crown"></i> Upgrade to Orb</button>' +
+      '<button onclick="startUpgrade()" style="width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#3b82f6);color:#fff;font-size:15px;font-weight:700;cursor:pointer;transition:transform 0.15s"><i aria-hidden="true" class="ti ti-crown"></i> Upgrade to Orb</button>' +
       '<button onclick="this.closest(\\'div[style*=fixed]\\').remove()" style="width:100%;padding:10px;border:none;background:none;color:var(--text2);font-size:13px;cursor:pointer;margin-top:4px">Maybe later</button>' +
     '</div>';
   document.body.appendChild(overlay);
@@ -5700,8 +5732,8 @@ async function generateImage() {
 
   var resultArea = document.getElementById('imageResult');
   var genBtn = document.getElementById('imageGenBtn');
-  if (genBtn) { genBtn.disabled = true; genBtn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Generating...'; }
-  if (resultArea) resultArea.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2)"><i class="ti ti-loader" style="font-size:32px;animation:spin 1s linear infinite"></i><div style="margin-top:12px;font-size:13px">Creating your image...</div></div>';
+  if (genBtn) { genBtn.disabled = true; genBtn.innerHTML = '<i aria-hidden="true" class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Generating...'; }
+  if (resultArea) resultArea.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2)"><i aria-hidden="true" class="ti ti-loader" style="font-size:32px;animation:spin 1s linear infinite"></i><div style="margin-top:12px;font-size:13px">Creating your image...</div></div>';
 
   try {
     var res = await authFetch('/api/image/generate', {
@@ -5720,11 +5752,11 @@ async function generateImage() {
           '<div style="padding:10px 12px;background:var(--bg2);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">' +
             '<span style="font-size:12px;color:var(--text2);max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escapeHTML(prompt) + '</span>' +
             '<div style="display:flex;gap:6px">' +
-              '<button onclick="downloadImage(\\'' + data.imageUrl + '\\',\\'' + escapeHTML(prompt.substring(0,30)) + '\\')" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:none;color:var(--text);font-size:12px;cursor:pointer"><i class="ti ti-download"></i> Save</button>' +
-              '<button onclick="shareImageToChat(\\'' + data.imageUrl + '\\')" style="padding:6px 12px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-size:12px;cursor:pointer"><i class="ti ti-message-share"></i> Send to Chat</button>' +
+              '<button onclick="downloadImage(\\'' + data.imageUrl + '\\',\\'' + escapeHTML(prompt.substring(0,30)) + '\\')" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:none;color:var(--text);font-size:12px;cursor:pointer"><i aria-hidden="true" class="ti ti-download"></i> Save</button>' +
+              '<button onclick="shareImageToChat(\\'' + data.imageUrl + '\\')" style="padding:6px 12px;border:none;border-radius:6px;background:var(--accent);color:#fff;font-size:12px;cursor:pointer"><i aria-hidden="true" class="ti ti-message-share"></i> Send to Chat</button>' +
             '</div>' +
           '</div>' +
-          '<div style="padding:6px 12px;background:rgba(245,158,11,0.06);font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px"><i class="ti ti-clock" style="color:#f59e0b"></i> This image will be deleted in 30 days. Save it now to keep it.</div>' +
+          '<div style="padding:6px 12px;background:rgba(245,158,11,0.06);font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px"><i aria-hidden="true" class="ti ti-clock" style="color:#f59e0b"></i> This image will be deleted in 30 days. Save it now to keep it.</div>' +
         '</div>';
       // Also add to messages as an assistant image
       state.messages.push({ role: 'assistant', content: '![Generated Image](' + data.imageUrl + ')\\n\\n*Prompt: ' + prompt + '*', model: 'orb-sight' });
@@ -5733,7 +5765,7 @@ async function generateImage() {
   } catch (e) {
     resultArea.innerHTML = '<div style="color:#ef4444;padding:12px;font-size:13px">Failed to generate image. Try again.</div>';
   } finally {
-    if (genBtn) { genBtn.disabled = false; genBtn.innerHTML = '<i class="ti ti-sparkles"></i> Generate'; }
+    if (genBtn) { genBtn.disabled = false; genBtn.innerHTML = '<i aria-hidden="true" class="ti ti-sparkles"></i> Generate'; }
   }
 }
 
@@ -5776,12 +5808,12 @@ function updateSendBtn() {
   const btn = document.getElementById('sendBtn');
   const input = document.getElementById('chatInput');
   if (state.streaming) {
-    btn.innerHTML = '<i class="ti ti-player-stop"></i>';
+    btn.innerHTML = '<i aria-hidden="true" class="ti ti-player-stop"></i>';
     btn.className = 'stop-btn';
     btn.onclick = stopStreaming;
     btn.disabled = false;
   } else {
-    btn.innerHTML = '<i class="ti ti-send"></i>';
+    btn.innerHTML = '<i aria-hidden="true" class="ti ti-send"></i>';
     btn.className = 'send-btn';
     btn.onclick = sendMessage;
     btn.disabled = !input.value.trim() && !state.attachedFiles.length;
@@ -5802,9 +5834,9 @@ function renderAttachments() {
   const el = document.getElementById('attachments');
   el.innerHTML = state.attachedFiles.map((f, i) =>
     '<div class="attachment-chip">' +
-      (f.type.startsWith('image/') ? '<i class="ti ti-photo" style="font-size:14px"></i> ' : '<i class="ti ti-file-text" style="font-size:14px"></i> ') +
+      (f.type.startsWith('image/') ? '<i aria-hidden="true" class="ti ti-photo" style="font-size:14px"></i> ' : '<i aria-hidden="true" class="ti ti-file-text" style="font-size:14px"></i> ') +
       escapeHTML(f.name) +
-      '<button onclick="removeAttachment(' + i + ')">&times;</button>' +
+      '<button aria-label="Remove attachment" onclick="removeAttachment(' + i + ')">&times;</button>' +
     '</div>'
   ).join('');
   updateSendBtn();
@@ -6125,7 +6157,7 @@ function toggleTheme() {
 
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', state.theme);
-  document.getElementById('themeBtn').innerHTML = state.theme === 'dark' ? '<i class="ti ti-sun"></i>' : '<i class="ti ti-moon"></i>';
+  document.getElementById('themeBtn').innerHTML = state.theme === 'dark' ? '<i aria-hidden="true" class="ti ti-sun"></i>' : '<i aria-hidden="true" class="ti ti-moon"></i>';
   document.querySelector('meta[name="theme-color"]').content = state.theme === 'dark' ? '#0d0d0d' : '#1a1a2e';
   var gb = document.getElementById('galaxyBg');
   if (gb) gb.style.display = state.theme === 'dark' ? 'block' : 'none';
@@ -6153,17 +6185,17 @@ async function openProfile() {
     var joined = new Date(profile.created_at).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
     body.innerHTML =
       '<div style="text-align:center;padding:12px 0 20px">' +
-        '<div style="width:64px;height:64px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px;color:#fff"><i class="ti ti-user"></i></div>' +
+        '<div style="width:64px;height:64px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px;color:#fff"><i aria-hidden="true" class="ti ti-user"></i></div>' +
         '<div id="profileNameDisplay" style="font-size:18px;font-weight:600;color:var(--text)">' + escapeHTML(profile.name || 'No name set') + '</div>' +
         '<div style="font-size:13px;color:var(--text2);margin-top:2px">' + escapeHTML(profile.email) + '</div>' +
         '<div style="margin-top:6px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap">' +
-          '<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text2)">' + (profile.email_verified ? '<i class="ti ti-circle-check" style="color:#22c55e"></i> Verified' : '<i class="ti ti-alert-circle" style="color:#f59e0b"></i> Unverified') + '</span>' +
+          '<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text2)">' + (profile.email_verified ? '<i aria-hidden="true" class="ti ti-circle-check" style="color:#22c55e"></i> Verified' : '<i aria-hidden="true" class="ti ti-alert-circle" style="color:#f59e0b"></i> Unverified') + '</span>' +
           (profile.subscription_tier === 'superadmin' ?
-            '<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:linear-gradient(135deg,#7c3aed22,#ec489922);color:#7c3aed;font-weight:600"><i class="ti ti-stars" style="color:#f59e0b"></i> Staff</span>' :
+            '<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:linear-gradient(135deg,#7c3aed22,#ec489922);color:#7c3aed;font-weight:600"><i aria-hidden="true" class="ti ti-stars" style="color:#f59e0b"></i> Staff</span>' :
             profile.subscription_tier === 'orb' ?
-            '<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--accent)"><i class="ti ti-crown" style="color:var(--accent)"></i> Orb</span>' :
-            '<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text2)"><i class="ti ti-crown" style="color:var(--text2)"></i> Free</span>') +
-          (profile.is_admin ? '<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#7c3aed22;color:#7c3aed"><i class="ti ti-shield-check"></i> Admin</span>' : '') +
+            '<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--accent)"><i aria-hidden="true" class="ti ti-crown" style="color:var(--accent)"></i> Orb</span>' :
+            '<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:var(--bg3);color:var(--text2)"><i aria-hidden="true" class="ti ti-crown" style="color:var(--text2)"></i> Free</span>') +
+          (profile.is_admin ? '<span style="font-size:11px;padding:2px 8px;border-radius:4px;background:#7c3aed22;color:#7c3aed"><i aria-hidden="true" class="ti ti-shield-check"></i> Admin</span>' : '') +
         '</div>' +
       '</div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;text-align:center">' +
@@ -6174,7 +6206,7 @@ async function openProfile() {
       '<div style="font-size:12px;color:var(--text2);margin-bottom:16px">Member since ' + joined + '</div>' +
       // Edit name
       '<div style="padding:16px;background:var(--bg2);border-radius:10px;margin-bottom:12px">' +
-        '<div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:8px"><i class="ti ti-edit" style="font-size:14px"></i> Display Name</div>' +
+        '<div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:8px"><i aria-hidden="true" class="ti ti-edit" style="font-size:14px"></i> Display Name</div>' +
         '<div style="display:flex;gap:8px">' +
           '<input id="profileNameInput" type="text" value="' + escapeHTML(profile.name || '') + '" placeholder="Enter your name" style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px">' +
           '<button onclick="updateProfileName()" style="padding:8px 16px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer">Save</button>' +
@@ -6182,7 +6214,7 @@ async function openProfile() {
       '</div>' +
       // Change password
       '<div style="padding:16px;background:var(--bg2);border-radius:10px;margin-bottom:12px">' +
-        '<div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:8px"><i class="ti ti-lock" style="font-size:14px"></i> Change Password</div>' +
+        '<div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:8px"><i aria-hidden="true" class="ti ti-lock" style="font-size:14px"></i> Change Password</div>' +
         '<input id="currentPwdInput" type="password" placeholder="Current password" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;margin-bottom:8px">' +
         '<input id="newPwdInput" type="password" placeholder="New password (min 8 characters)" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;margin-bottom:8px">' +
         '<button onclick="changePassword()" style="width:100%;padding:10px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer">Update Password</button>' +
@@ -6190,17 +6222,17 @@ async function openProfile() {
       '</div>' +
       // Data export
       '<div style="padding:16px;background:var(--bg2);border-radius:10px;margin-bottom:12px">' +
-        '<div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:8px"><i class="ti ti-download" style="font-size:14px"></i> Your Data</div>' +
+        '<div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:8px"><i aria-hidden="true" class="ti ti-download" style="font-size:14px"></i> Your Data</div>' +
         '<div style="display:flex;gap:8px">' +
-          '<button onclick="exportData()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text);font-size:13px;cursor:pointer"><i class="ti ti-download"></i> Export All Data</button>' +
-          '<button onclick="signOutAllSessions()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:none;color:#f59e0b;font-size:13px;cursor:pointer"><i class="ti ti-devices-off"></i> Sign Out All Others</button>' +
+          '<button onclick="exportData()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text);font-size:13px;cursor:pointer"><i aria-hidden="true" class="ti ti-download"></i> Export All Data</button>' +
+          '<button onclick="signOutAllSessions()" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;background:none;color:#f59e0b;font-size:13px;cursor:pointer"><i aria-hidden="true" class="ti ti-devices-off"></i> Sign Out All Others</button>' +
         '</div>' +
       '</div>' +
       // Danger zone
       '<div style="padding:16px;border:1px solid #ef444444;border-radius:10px">' +
-        '<div style="font-size:13px;font-weight:600;color:#ef4444;margin-bottom:8px"><i class="ti ti-alert-triangle" style="font-size:14px"></i> Danger Zone</div>' +
+        '<div style="font-size:13px;font-weight:600;color:#ef4444;margin-bottom:8px"><i aria-hidden="true" class="ti ti-alert-triangle" style="font-size:14px"></i> Danger Zone</div>' +
         '<p style="font-size:12px;color:var(--text2);margin-bottom:12px">Permanently delete your account and all associated data. This action cannot be undone.</p>' +
-        '<button onclick="deleteAccount()" style="width:100%;padding:10px;border:1px solid #ef4444;border-radius:8px;background:none;color:#ef4444;font-size:13px;font-weight:600;cursor:pointer"><i class="ti ti-trash"></i> Delete Account</button>' +
+        '<button onclick="deleteAccount()" style="width:100%;padding:10px;border:1px solid #ef4444;border-radius:8px;background:none;color:#ef4444;font-size:13px;font-weight:600;cursor:pointer"><i aria-hidden="true" class="ti ti-trash"></i> Delete Account</button>' +
       '</div>';
   } catch (err) {
     body.innerHTML = '<div style="color:#ef4444">Error loading profile: ' + escapeHTML(err.message) + '</div>';
@@ -6416,7 +6448,7 @@ function renderCustomProviders() {
           '<div style="display:flex;gap:6px">' +
             '<button onclick="testProviderConnection(\\'' + p.id + '\\')" id="test-btn-' + p.id + '" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:none;color:#22c55e;font-size:12px;font-weight:600;cursor:pointer" title="Test connection to provider">&#9889; Test</button>' +
             '<button onclick="discoverModels(\\'' + p.id + '\\')" style="padding:6px 12px;border:1px solid var(--border);border-radius:6px;background:none;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer" title="Auto-discover models from this endpoint">&#128270; Discover</button>' +
-            '<button onclick="deleteProvider(\\'' + p.id + '\\')" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:none;color:#ef4444;font-size:12px;cursor:pointer" title="Delete provider">&times;</button>' +
+            '<button onclick="deleteProvider(\\'' + p.id + '\\')" aria-label="Delete provider" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:none;color:#ef4444;font-size:12px;cursor:pointer" title="Delete provider">&times;</button>' +
           '</div>' +
         '</div>' +
         '<div style="font-size:12px;color:var(--text2);font-family:monospace;margin-bottom:8px">' + escapeHTML(p.base_url) + '</div>' +
@@ -6666,7 +6698,7 @@ async function startMultiChat() {
   // Show loading for each model
   const loadingHTML = state.selectedModels.map(mid => {
     const m = MODELS_CACHE.find(x => x.id === mid);
-    return '<div class="message assistant" id="multi-' + mid + '"><div class="avatar"><i class="ti ti-sparkles" style="font-size:18px"></i></div>' +
+    return '<div class="message assistant" id="multi-' + mid + '"><div class="avatar"><i aria-hidden="true" class="ti ti-sparkles" style="font-size:18px"></i></div>' +
       '<div class="bubble"><div style="font-weight:600;margin-bottom:6px;color:var(--accent)">' + escapeHTML(m?.name || mid) + '</div><div class="typing-indicator"><span></span><span></span><span></span></div></div></div>';
   }).join('');
   msgEl.innerHTML += loadingHTML;
@@ -6788,8 +6820,8 @@ async function loadQuickPrompts() {
   var top = state.savedPrompts.slice(0, 6);
   container.innerHTML = top.map(function(p) {
     return '<button class="quick-prompt-chip" onclick="useQuickPrompt(\\'' + p.id + '\\')" title="' + escapeHTML(p.content.substring(0, 80)) + '">' +
-      '<i class="ti ti-file-text" style="font-size:12px;margin-right:4px;color:var(--accent)"></i>' + escapeHTML(p.title) + '</button>';
-  }).join('') + '<button class="quick-prompt-chip" onclick="openPrompts()" style="color:var(--accent);border-color:var(--accent)"><i class="ti ti-plus" style="font-size:12px;margin-right:2px"></i> More</button>';
+      '<i aria-hidden="true" class="ti ti-file-text" style="font-size:12px;margin-right:4px;color:var(--accent)"></i>' + escapeHTML(p.title) + '</button>';
+  }).join('') + '<button class="quick-prompt-chip" onclick="openPrompts()" style="color:var(--accent);border-color:var(--accent)"><i aria-hidden="true" class="ti ti-plus" style="font-size:12px;margin-right:2px"></i> More</button>';
   container.style.display = 'flex';
 }
 
@@ -6925,7 +6957,7 @@ function showSpaceFact() {
   var fact = SPACE_FACTS[Math.floor(Math.random() * SPACE_FACTS.length)];
   var el = document.createElement('div');
   el.className = 'space-fact-alert';
-  el.innerHTML = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><i class="ti ti-star" style="color:#8a2be2"></i><strong style="color:#8a2be2">Space Fact</strong><button onclick="this.parentElement.parentElement.remove()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text2);font-size:16px">&times;</button></div><p style="margin:0;font-size:13px;color:var(--text);line-height:1.5">' + fact + '</p>';
+  el.innerHTML = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><i aria-hidden="true" class="ti ti-star" style="color:#8a2be2"></i><strong style="color:#8a2be2">Space Fact</strong><button onclick="this.parentElement.parentElement.remove()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--text2);font-size:16px">&times;</button></div><p style="margin:0;font-size:13px;color:var(--text);line-height:1.5">' + fact + '</p>';
   var msgs = document.getElementById('messages');
   if (msgs) { msgs.appendChild(el); msgs.scrollTop = msgs.scrollHeight; }
   setTimeout(function() { if (el.parentElement) el.remove(); }, 15000);
@@ -6944,7 +6976,7 @@ function showPolicyGate() {
   overlay.id = 'policyGate';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
   overlay.innerHTML = '<div style="background:var(--bg);border:2px solid var(--accent);border-radius:16px;padding:32px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto">' +
-    '<h2 style="font-size:20px;margin:0 0 16px;color:var(--text)"><i class="ti ti-shield-check" style="color:#8a2be2"></i> Welcome, Astronomer</h2>' +
+    '<h2 style="font-size:20px;margin:0 0 16px;color:var(--text)"><i aria-hidden="true" class="ti ti-shield-check" style="color:#8a2be2"></i> Welcome, Astronomer</h2>' +
     '<p style="font-size:14px;color:var(--text2);margin:0 0 20px;line-height:1.5">Before you explore the galaxy, please review and accept our policies.</p>' +
     '<div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px">' +
       '<label style="display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--border);border-radius:10px;cursor:pointer;background:var(--bg2)">' +
@@ -6957,7 +6989,7 @@ function showPolicyGate() {
         '<input type="checkbox" id="acceptPrivacy" style="width:20px;height:20px;margin-top:2px;accent-color:#8a2be2">' +
         '<div><strong style="font-size:14px;color:var(--text)">Privacy Policy</strong><br><span style="font-size:12px;color:var(--text2)">How we handle your data. Chat text is logged for model training. <a href="/privacy" target="_blank" style="color:#8a2be2">Read full policy</a></span></div></label>' +
     '</div>' +
-    '<div style="padding:10px;background:rgba(138,43,226,0.1);border-radius:8px;font-size:12px;color:var(--text2);margin-bottom:16px"><i class="ti ti-info-circle" style="color:#8a2be2"></i> All chat text (excluding images and videos) is collected and may be used to train our proprietary model, Orb.</div>' +
+    '<div style="padding:10px;background:rgba(138,43,226,0.1);border-radius:8px;font-size:12px;color:var(--text2);margin-bottom:16px"><i aria-hidden="true" class="ti ti-info-circle" style="color:#8a2be2"></i> All chat text (excluding images and videos) is collected and may be used to train our proprietary model, Orb.</div>' +
     '<button id="acceptPoliciesBtn" onclick="acceptAllPolicies()" disabled style="width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,#8a2be2,#4169e1);color:#fff;font-size:15px;font-weight:700;cursor:pointer;opacity:0.5">Accept All & Continue</button></div>';
   document.body.appendChild(overlay);
   ['acceptTos','acceptAup','acceptPrivacy'].forEach(function(id) {
@@ -7061,8 +7093,8 @@ document.getElementById('chatInput').addEventListener('input', checkPromptImprov
 <\/script>
 
 <!-- Voice Overlay -->
-<div id="voiceOverlay">
-  <button class="voice-close" onclick="closeVoiceOverlay()">&times;</button>
+<div id="voiceOverlay" role="dialog" aria-modal="true" aria-label="Voice conversation">
+  <button class="voice-close" aria-label="Close voice conversation" onclick="closeVoiceOverlay()">&times;</button>
   <div class="supernova-container">
     <div class="supernova-particles"></div>
     <div class="supernova-glow"></div>

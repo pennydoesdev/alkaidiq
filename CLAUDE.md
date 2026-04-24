@@ -14,7 +14,6 @@ Alkaid AI is a multi-model AI chat SaaS PWA at **chat.alkaidiq.com**. The entire
 ```
 src/worker.js       — The entire application (backend + frontend in template literal)
 src/admin-html.js   — Admin dashboard SPA (exported as ES module, imported by worker.js)
-chat-worker.js      — Mirror copy of src/worker.js (legacy deploy artifact)
 wrangler.toml       — Cloudflare Workers config (bindings, routes, vars)
 DEVELOPER.md        — Detailed architecture docs, API endpoints, security checklist
 ```
@@ -154,7 +153,7 @@ These are independent and not yet in any GitHub repo.
 
 ## Known Issues / TODO
 
-- [ ] CSP header not yet implemented
-- [ ] ARIA labels for accessibility needed
-- [ ] `chat-worker.js` is a manual mirror of `src/worker.js` — keep them in sync or remove it
+- [x] CSP header implemented via `htmlHeaders()` helper (`src/worker.js`). Inline scripts/styles require `'unsafe-inline'`; external CDNs (cdnjs, jsdelivr, fonts.googleapis, fonts.gstatic, googletagmanager, google-analytics) are explicitly whitelisted. When adding a new external resource, extend the appropriate directive in `CSP_HEADER`.
+- [x] ARIA labels added: icon-only buttons, modal dialogs (`role="dialog"` + `aria-labelledby`), verification code inputs, decorative icons marked `aria-hidden="true"`, messages container has `role="log"` + `aria-live="polite"`.
+- [x] `chat-worker.js` removed.
 - [ ] Consider splitting the single-file architecture as it approaches 8,000+ lines
